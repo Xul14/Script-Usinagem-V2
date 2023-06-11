@@ -310,9 +310,197 @@ create table tbl_turma_disciplina_professor_atividade (
         unique index(id)
 		);
 
+############# VIEWS #############
+##View Atividade
+create view vwAtividade as
+	select tbl_atividade.id, tbl_atividade.nome as nome_atividade, tbl_atividade.numero as numero_atividade,
+		   tbl_tipo_atividade.nome as tipo_atividade,
+		   time_format(tbl_tempo_previsto.tempo , '%H:%i') as tempo_previsto
+    from tbl_atividade
+         inner join tbl_tipo_atividade
+             on tbl_atividade.id_tipo_atividade = tbl_tipo_atividade.id
+         inner join tbl_tempo_previsto
+             on tbl_atividade.id_tempo_previsto = tbl_tempo_previsto.id;
+
+## View Matricula
+create view vwMatricula as 
+	select  tbl_matricula.id as id_matricula,
+			tbl_matricula.numero as numero_matricula,
+			tbl_aluno.nome as nome_aluno, 
+			tbl_aluno.email_institucional as email,
+			tbl_aluno.senha as senha,
+			tbl_turma.nome as nome_turma, tbl_turma.termo,
+			tbl_curso.nome as nome_curso, 
+			tbl_ano.ano as ano,
+			tbl_periodo.nome as periodo
+	from tbl_matricula 
+		inner join tbl_aluno 
+			on tbl_matricula.id_aluno = tbl_aluno.id
+		inner join tbl_turma
+			on tbl_matricula.id_turma = tbl_turma.id
+		inner join tbl_curso
+			on tbl_turma.id_curso = tbl_curso.id
+		inner join tbl_ano
+			on tbl_turma.id_ano = tbl_ano.id
+		inner join tbl_periodo
+			on tbl_turma.id_periodo = tbl_periodo.id;
+
+##View Turma
+create view vwTurma as
+	   select tbl_turma.id ,tbl_turma.nome, tbl_turma.termo, 
+			  tbl_curso.nome as nome_curso,
+              tbl_ano.ano as ano, 
+              tbl_periodo.nome as periodo
+	   from tbl_turma
+			inner join tbl_curso
+				on tbl_turma.id_curso = tbl_curso.id
+			inner join tbl_ano
+				on tbl_turma.id_ano = tbl_ano.id
+			inner join tbl_periodo
+				on tbl_turma.id_periodo = tbl_periodo.id;
+
+##View Registro de Tempo
+create view vwRegistroTempo as 
+	   select tbl_registro_tempo.id,
+                time_format(tbl_registro_tempo.horario_inicio,'%H:%i') as horario_inicio, 
+                time_format(tbl_registro_tempo.horario_termino, '%H:%i') as horario_termino,
+                time_format(tbl_registro_tempo.desconto, '%H:%i') as desconto,
+                time_format(tbl_registro_tempo.liquido, '%H:%i') as liquido,
+                date_format(tbl_registro_tempo.data_registro, '%d/%m/%Y') as data_registro
+		from tbl_registro_tempo;
+
+##View Valor Desejado
+create view vwValorDesejado as 
+	   select tbl_valor_desejado.id, tbl_valor_desejado.valor_desejado,
+			  tbl_criterio.descricao as criterio
+	   from tbl_valor_desejado
+			inner join tbl_criterio
+				on tbl_valor_desejado.id_criterio = tbl_criterio.id;
+
+##View Atividade Valor-Desejado
+create view vwAtividadeValorDesejado as
+	   select tbl_atividade_valor_desejado.id,
+			  tbl_atividade.nome as nome_atividade, tbl_atividade.numero as numero_atividade,
+              tbl_tipo_atividade.nome as tipo_atividade,
+              tbl_tempo_previsto.tempo as tempo_previsto,
+              tbl_valor_desejado.valor_desejado,
+			  tbl_criterio.descricao as criterio
+	   from tbl_atividade_valor_desejado
+			inner join tbl_atividade
+				on tbl_atividade_valor_desejado.id_atividade = tbl_atividade.id
+			inner join tbl_tipo_atividade
+				on tbl_atividade.id_tipo_atividade = tbl_tipo_atividade.id
+			inner join tbl_tempo_previsto
+				on tbl_atividade.id_tempo_previsto = tbl_tempo_previsto.id
+			inner join tbl_valor_desejado
+				on tbl_atividade_valor_desejado.id_valor_desejado = tbl_valor_desejado.id
+			inner join tbl_criterio
+				on tbl_valor_desejado.id_criterio = tbl_criterio.id;
+
+##View Turma Disciplina Professor
+create view vwTurmaDisciplinaProfessor as
+			select tbl_turma_disciplina_professor.id,
+				   tbl_professor.nome as nome_professor, tbl_professor.nif as nif_professor,
+				   tbl_administrador.nome as nome_adm,
+				   tbl_disciplina.nome as nome_disciplina,
+				   tbl_curso.nome as nome_curso,
+				   tbl_turma.nome as nome_turma, tbl_turma.termo,
+				   tbl_periodo.nome as periodo,
+                   tbl_ano.ano as ano_turma
+			  from tbl_turma_disciplina_professor
+					inner join tbl_professor
+						on tbl_professor.id = tbl_turma_disciplina_professor.id_professor
+					inner join tbl_administrador
+						on tbl_administrador.id = tbl_professor.id_administrador
+					inner join tbl_turma
+						on tbl_turma.id = tbl_turma_disciplina_professor.id_turma 
+					inner join tbl_curso
+						on tbl_curso.id = tbl_turma.id_curso
+					inner join tbl_periodo
+						on tbl_periodo.id = tbl_turma.id_periodo
+					inner join tbl_ano 
+						on tbl_ano.id = tbl_turma.id_ano
+					inner join tbl_disciplina
+						on tbl_disciplina.id = tbl_turma_disciplina_professor.id_disciplina;
+
+##View Turma Disciplina Professor Atividade
+create view vwTurmaDisciplinaProfessorAtividade as
+	select tbl_turma_disciplina_professor_atividade.id,
+    tbl_professor.nome as nome_professor, tbl_professor.nif as nif_professor,
+    tbl_administrador.nome as nome_adm,
+    tbl_disciplina.nome as nome_disciplina,
+    tbl_curso.nome as nome_curso,
+    tbl_turma.nome as nome_turma, tbl_turma.termo,
+    tbl_periodo.nome as periodo,
+    tbl_ano.ano as ano_turma,
+    tbl_atividade.nome as nome_atividade, tbl_atividade.numero as numero_atividade,
+    tbl_tipo_atividade.nome as tipo_atividade,
+    time_format(tbl_tempo_previsto.tempo , '%H:%i') as tempo_previsto
+    from tbl_turma_disciplina_professor_atividade
+         inner join tbl_turma_disciplina_professor
+                 on tbl_turma_disciplina_professor_atividade.id_turma_disciplina_professor = tbl_turma_disciplina_professor.id
+         inner join tbl_atividade
+                 on tbl_turma_disciplina_professor_atividade.id_atividade = tbl_atividade.id
+         inner join tbl_professor
+                 on tbl_professor.id = tbl_turma_disciplina_professor.id_professor
+         inner join tbl_administrador
+                 on tbl_administrador.id = tbl_professor.id_administrador
+         inner join tbl_turma
+                 on tbl_turma.id = tbl_turma_disciplina_professor.id_turma 
+         inner join tbl_curso
+                 on tbl_curso.id = tbl_turma.id_curso
+         inner join tbl_periodo
+                 on tbl_periodo.id = tbl_turma.id_periodo
+         inner join tbl_ano 
+                 on tbl_ano.id = tbl_turma.id_ano
+         inner join tbl_disciplina
+                 on tbl_disciplina.id = tbl_turma_disciplina_professor.id_disciplina
+          inner join tbl_tipo_atividade
+                 on tbl_atividade.id_tipo_atividade = tbl_tipo_atividade.id
+         inner join tbl_tempo_previsto
+                 on tbl_atividade.id_tempo_previsto = tbl_tempo_previsto.id;
+                 
+##View Matricula Atividade Registro de Tempo
+create view vwMatriculaAtividadeRegistroTempo as 
+	select tbl_matricula_atividade_registro_tempo.id,
+    tbl_matricula.numero as numero_matricula,
+    tbl_aluno.nome as nome_aluno, 
+    tbl_aluno.email_institucional as email,
+    tbl_aluno.senha as senha,
+    tbl_turma.nome as nome_turma, tbl_turma.termo,
+    tbl_curso.nome as nome_curso, 
+    tbl_ano.ano as ano,
+    tbl_periodo.nome as periodo,
+    tbl_atividade.nome as nome_atividade, tbl_atividade.numero as numero_atividade,
+    tbl_tipo_atividade.nome as tipo_atividade,
+    time_format(tbl_tempo_previsto.tempo , '%H:%i') as tempo_previsto,
+    time_format(tbl_registro_tempo.horario_inicio,'%H:%i') as horario_inicio, 
+    time_format(tbl_registro_tempo.horario_termino, '%H:%i') as horario_termino,
+    time_format(tbl_registro_tempo.desconto, '%H:%i') as desconto,
+    time_format(tbl_registro_tempo.liquido, '%H:%i') as liquido,
+    date_format(tbl_registro_tempo.data_registro, '%d/%m/%Y') as data_registro
+         from tbl_matricula_atividade_registro_tempo
+             inner join tbl_matricula
+                     on tbl_matricula_atividade_registro_tempo.id_matricula = tbl_matricula.id
+             inner join tbl_atividade
+                     on tbl_matricula_atividade_registro_tempo.id_atividade = tbl_atividade.id
+             inner join tbl_registro_tempo
+                     on tbl_matricula_atividade_registro_tempo.id_registro_tempo = tbl_registro_tempo.id
+             inner join tbl_aluno 
+                     on tbl_matricula.id_aluno = tbl_aluno.id
+             inner join tbl_turma
+                     on tbl_matricula.id_turma = tbl_turma.id
+             inner join tbl_curso
+                     on tbl_turma.id_curso = tbl_curso.id
+             inner join tbl_ano
+                     on tbl_turma.id_ano = tbl_ano.id
+             inner join tbl_periodo
+                     on tbl_turma.id_periodo = tbl_periodo.id
+             inner join tbl_tipo_atividade
+                     on tbl_atividade.id_tipo_atividade = tbl_tipo_atividade.id
+             inner join tbl_tempo_previsto
+                     on tbl_atividade.id_tempo_previsto = tbl_tempo_previsto.id;
 
 show tables;
- 
 
- 
 
