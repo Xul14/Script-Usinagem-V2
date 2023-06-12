@@ -313,7 +313,7 @@ create table tbl_turma_disciplina_professor_atividade (
 ############# VIEWS #############
 ##View Atividade
 create view vwAtividade as
-	select tbl_atividade.id, tbl_atividade.nome as nome_atividade, tbl_atividade.numero as numero_atividade,
+	select tbl_atividade.id, tbl_atividade.nome , tbl_atividade.numero,
 		   tbl_tipo_atividade.nome as tipo_atividade,
 		   time_format(tbl_tempo_previsto.tempo , '%H:%i') as tempo_previsto
     from tbl_atividade
@@ -501,6 +501,126 @@ create view vwMatriculaAtividadeRegistroTempo as
              inner join tbl_tempo_previsto
                      on tbl_atividade.id_tempo_previsto = tbl_tempo_previsto.id;
 
+##View Avaliação
+create view vwAvaliacaoAlunoProfessorMatricula as
+	select tbl_avaliacao.id as id_avaliacao, tbl_avaliacao.avaliacao_aluno, tbl_avaliacao.avaliacao_professor, tbl_avaliacao.obtido,
+		   tbl_aluno.nome as nome_aluno,
+		   tbl_professor.nome as nome_professor,
+		   tbl_atividade.id as id_atividade,
+           tbl_valor_desejado.valor_desejado as valor_desejado,
+		   tbl_criterio.descricao as descricao_criterio
+	from tbl_avaliacao
+			inner join tbl_matricula
+				on tbl_avaliacao.id_matricula = tbl_matricula.id
+			inner join tbl_aluno
+				on tbl_matricula.id_aluno = tbl_aluno.id
+			inner join tbl_professor
+				on tbl_avaliacao.id_professor = tbl_professor.id
+			inner join tbl_atividade_valor_desejado
+				on tbl_avaliacao.id_atividade_valor_desejado = tbl_atividade_valor_desejado.id
+			inner join tbl_atividade
+				on tbl_atividade_valor_desejado.id_atividade = tbl_atividade.id
+			inner join tbl_valor_desejado
+				on tbl_atividade_valor_desejado.id_valor_desejado = tbl_valor_desejado.id
+			inner join tbl_criterio
+				on tbl_valor_desejado.id_criterio = tbl_criterio.id;
+
 show tables;
 
+######################## TRIGGERS ########################
 
+DELIMITER $
+
+## TRIGGERS DELETE ANO, PERIODO E CURSO
+create trigger tgrDeleteTurma_Ano 
+	before delete on tbl_ano
+		for each row 
+			BEGIN
+				delete from tbl_turma where id_ano = old.id;
+            END$
+
+create trigger tgrDeleteTurma_Periodo
+	before delete on tbl_periodo
+		for each row 
+			BEGIN
+				delete from tbl_turma where id_periodo = old.id;
+            END$
+
+create trigger tgrDeleteTurma_Curso
+	before delete on tbl_curso
+		for each row 
+			BEGIN
+				delete from tbl_turma where id_curso = old.id;
+            END$
+
+## TRIGGER DELETE ALUNO
+create trigger tgrDeleteAluno
+	before delete on tbl_aluno
+		for each row 
+			BEGIN
+				delete from tbl_matricula where id_aluno = old.id;
+            END$
+
+## TRIGGER DELETE CRITERIO 
+create trigger tgrDeleteCriterio
+	before delete on tbl_criterio
+		for each row 
+			BEGIN
+				delete from tbl_valor_desejado where id_criterio = old.id;
+            END$
+
+## TRIGGER DELETE TEMPO PREVISTO  
+create trigger tgrDeletetTempoPrevisto
+	before delete on tbl_tempo_previsto
+		for each row 
+			BEGIN
+				delete from tbl_atividade where id_tempo_previsto = old.id;
+            END$
+
+## TRIGGER DELETE TIPO DE ATIVIDADE 
+create trigger tgrDeletetTipoAtividade
+	before delete on tbl_tipo_atividade
+		for each row 
+			BEGIN
+				delete from tbl_atividade where id_tipo_atividade = old.id;
+            END$
+            
+## TRIGGER DELETE ATIVIDADE VALOR DESEJADO
+create trigger tgrDeleteAtividadeValorDesejado
+	before delete on tbl_atividade_valor_desejado
+		for each row 
+			BEGIN
+				delete from tbl_avaliacao where id_atividade_valor_desejado = old.id;
+            END$
+
+## TRIGGER DELETE PROFESSOR 
+create trigger tgrDeleteProfessorAvaliacao
+	before delete on tbl_professor
+		for each row 
+			BEGIN
+				delete from tbl_avaliacao where id_professor = old.id;
+            END$
+
+## TRIGGER DELETE MATRICULA 
+create trigger tgrDeleteMatricularAvaliacao
+	before delete on tbl_matricula
+		for each row 
+			BEGIN
+				delete from tbl_avaliacao where id_matricula = old.id;
+            END$
+
+## TRIGGER DELETE DISCIPLINA
+create trigger tgrDeleteDisciplina
+	before delete on tbl_disciplina
+		for each row 
+			BEGIN
+				delete from tbl_turma_disciplina_professor where id_disciplina = old.id;
+            END$
+
+select * from tbl_turma_disciplina_professor;
+select * from tbl_disciplina;
+select * from tbl_turma;
+select * from tbl_professor;
+delete from tbl_disciplina where id = 2;
+desc tbl_avaliacao;
+show triggers;
